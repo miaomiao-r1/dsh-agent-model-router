@@ -6,7 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const required=['index.js','client.js','cordis.patch.yml','source/defaults.mjs','source/store.mjs','source/router.mjs','source/http.mjs','engine/engine.cjs','engine/orchestrate.workflow.js','scripts/install.mjs','scripts/uninstall.mjs','LICENSE','THIRD-PARTY-LICENSE.txt','README.md'];
+const required=['index.js','client.js','cordis.patch.yml','source/defaults.mjs','source/store.mjs','source/router.mjs','source/http.mjs','source/delegation.mjs','source/handoff.mjs','engine/engine.cjs','engine/orchestrate.workflow.js','scripts/install.mjs','scripts/uninstall.mjs','LICENSE','THIRD-PARTY-LICENSE.txt','README.md'];
 function inside(directory,file){
   assert.equal(typeof file,'string','Manifest entry must be a path');
   const target=path.resolve(directory,file),relative=path.relative(directory,target);

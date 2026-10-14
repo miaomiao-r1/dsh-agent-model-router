@@ -57,7 +57,8 @@ async function orchestrate(args={},hooks={}) {
     impl:prior.impl ?? null,test:prior.test ?? null,review:prior.review ?? null,
     rootPlan:prior.rootPlan ?? args.planFromRoot ?? null,
     constraints:prior.constraints ?? args.constraints ?? null,
-    acceptanceCriteria:prior.acceptanceCriteria ?? args.acceptanceCriteria ?? null};
+    acceptanceCriteria:prior.acceptanceCriteria ?? args.acceptanceCriteria ?? null,
+    handoffPolicy:prior.handoffPolicy ?? null};
   const tasks={};
   function finish(verdict) {
     out.verdict=verdict; out.canAccept=verdict==='passed';out.handoff={...evidence};
@@ -100,7 +101,7 @@ async function orchestrate(args={},hooks={}) {
     }
   }
   if(errors.length)return finish('blocked');
-  const resultInstructions=role=>"\nReturn ONLY one JSON object. Required: status ("+STATES[role].join('|')+") and nonempty summary. Tester passed requires nonempty commands and evidence. Reviewer findings requires findings array and explicit boolean blocking. Do not claim unperformed verification.";
+  const resultInstructions=role=>"\nReturn ONLY one JSON object. Required: status ("+STATES[role].join('|')+") and nonempty summary. Keep summary concise. Preserve exact failures, uncertainty/unresolved questions, decisions, constraints, file locations and evidenceIndex. Read referenced full reports and actual files before relying on excerpts. Missing sources or unapproved decisions require blocked/needs_decision, not guessing. Tester passed requires nonempty commands and evidence. Reviewer findings requires findings array and explicit boolean blocking. Do not claim unperformed verification.";
   for(const stage of out.plan) {
     const role=STAGE_ROLE[stage],r=roles[role],items=tasks[stage],results=[];
     const limit=cc[r.provider] ?? 1;

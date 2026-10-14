@@ -1,4 +1,5 @@
 export const OWNED_PROVIDERS=new Set(['our-free-model','our-free-model-region','codearts','codebuddy','workbuddy','lobsterai','qoder','qodercn','trae','cline','loomy','raccoon','minimax','zcode','gemini']);
+import {assessDelegation} from './delegation.mjs';
 const STAGES={explore:'explorer',research:'researcher',implement:'worker',test:'tester',review:'reviewer'};
 const ROLE_NAMES=['explorer','worker','tester','researcher','reviewer'];
 const key=r=>JSON.stringify([r.provider,r.model??r.id]);
@@ -46,6 +47,10 @@ export class RouterService {
     if(Object.hasOwn(args,'roles'))throw Error('不得通过 roles 覆盖界面已保存的模型');
     if(!exec?.agent)throw Error('编排工具必须由当前会话代理调用');
     if((await this.store.read()).enabled!==true)throw Error('多代理模式已关闭，请在左侧“代理模型”开启后再调用');
+    if(args.delegation){
+      const decision=assessDelegation(args.delegation);
+      if(decision.route==='root')return {runId:null,agentsStarted:0,routingDecision:decision,result:{verdict:'root_required',canAccept:false,taskComplete:false,summary:'请由根代理直接处理本任务，不启动子代理。'}};
+    }
     const snapshot=copy(await this.forAgent(exec.agent));
     const plan=args.plan===undefined?['explore','implement','test','review']:args.plan;
     if(!Array.isArray(plan)||!plan.length||plan.some(s=>!STAGES[s]))throw Error('plan 必须为非空合法阶段数组');

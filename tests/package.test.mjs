@@ -34,5 +34,5 @@ test('release verifier accepts a complete package including a workflow function 
   const directory=await fixture(t);
   const result=await verifyUnpacked(directory);
   assert.equal(result.name,'dsh-agent-model-router');
-  assert.equal(result.version,'1.0.0');
+  assert.equal(result.version,'1.0.0-rc.1');
 });

@@ -11,15 +11,21 @@ url: https://github.com/miaomiao-r1/dsh-agent-model-router
 name: miaomiao-r1/dsh-agent-model-router
 category: workflow
 description:
-  en: Configure per-role model mappings and run staged agent workflows with dsh-our-free-model.
-  zh: 配合 dsh-our-free-model 配置各代理角色的模型映射并执行分阶段工作流。
+  en: Assign enabled dsh-our-free-model channel models across five agent roles and run staged workflows to help use available free-tier quotas by task role.
+  zh: 配合 dsh-our-free-model 将已启用的通道模型分配给五类代理角色并执行分阶段工作流，按任务角色利用可用免费额度。
 ```
+
+使用前需安装并启用 `dsh-our-free-model`。它管理通道凭据与模型可用性；本插件管理五角色映射和 workflow。免费额度与使用条款由各供应商决定，部分通道可能不免费，用户需确认所选通道确有免费额度且符合其条款。插件按固定 provider 广告清单和启用状态提供模型选项，不查询额度或余额，不按剩余额度调度，也不会在额度耗尽时自动切换；因此条目描述的是按角色分配已启用模型以利用免费额度的用途，不是无限免费、零费用或节省金额保证。
 
 发布包可通过 GitHub Release 的固定 tag 对应 tarball 分发，再在条目中添加 `tarball` 字段。当前尚未上传 Release 附件，不填写不存在的下载链接。若另行发布到 npm，package.json 的 `repository` 已真实指回该插件仓库；无论是否发布 npm 都不要添加 `npm` key，目录自动关联。
 
 ## 本地打包准备
 
+1.0.0-rc.1 已通过 53 项本地测试、语法/工作流同步和实际包检查；该版本为预发布，最新完整实机验收与截图尚待已登录 DSH 页面。安全审查及开发卸载修复见 [security-review.md](security-review.md)。
+
 发布检查脚本 `scripts/verify-package.mjs` 用于检查实际 `.tgz` 解包内容、入口与依赖、workflow、许可文件，以及隔离环境中的安装和卸载范围。使用 `npm run verify:package` 执行。打包产物写入 `artifacts/*.tgz`；它是构建产物，不纳入项目树维护清单。
+
+另已实测从 GitHub codeload 下载固定提交 d55a05667c3272bd6f7847830a2d94ae35efce61，以标准 DSH CLI 安装到独立 github-install-check 的 release-check profile，关闭构建脚本，运行包入口检查后卸载。安装与卸载均验证 manifest/bundle 注册；不表示该 profile 已运行真实模型。
 
 建议先运行 `npm test`、`npm run check`，再运行打包检查。三者分别提供本地测试、语法检查和包内容/隔离安装检查证据；这些结果都不等于 DSH 中的真实代理编排验收。
 

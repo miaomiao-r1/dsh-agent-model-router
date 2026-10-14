@@ -1,6 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {RouterService} from '../source/router.mjs';
+
+test('root routing does not start a workflow for a simple assessed task',async()=>{
+ const f=fixture();
+ const result=await f.service.execute({task:'small change',plan:['implement'],delegation:{scopeCount:1,risk:'low'}},{agent:{session:{header:{id:'x',createdAt:300}}}});
+ assert.equal(result.agentsStarted,0);assert.equal(result.result.verdict,'root_required');assert.equal(f.starts.length,0);
+});
 const keys=['explorer','worker','tester','researcher','reviewer'];
 const roles=Object.fromEntries(keys.map(k=>[k,{provider:'trae',model:'enabled'}]));
 function fixture(){

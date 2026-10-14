@@ -1,8 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {apply,inject} from '../index.js';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
 
-test('host API loads without a global workflow engine and uses the calling preset workflow',async()=>{
+test('host API loads without a global workflow engine and uses the calling preset workflow',async t=>{
+ const handoffDirectory=await mkdtemp(path.join(tmpdir(),'amr-host-'));t.after(()=>rm(handoffDirectory,{recursive:true,force:true}));
  const definitions=new Map(),routes=[],effects=[];
  const agent={session:{header:{id:'host-fixture',createdAt:1}}};
  const signal=new AbortController().signal;
@@ -19,7 +23,7 @@ test('host API loads without a global workflow engine and uses the calling prese
  // A real Web host has no global workflowEngine; the shipped preset isolates it.
  assert.ok(inject.every(name=>name in ctx),'plugin must activate with host-plane services');
  ctx.systemPrompt={section:()=>()=>{},getSectionOrder:()=>1};
- const service=apply(ctx,{stateFile:'unused-host-fixture.json'});
+ const service=apply(ctx,{stateFile:'unused-host-fixture.json',handoffDirectory});
  const schema=definitions.get('agent_orchestrate').parameters;
  assert.equal(schema.type,'object','tool registry expects a complete JSON Schema, not a field-spec map');
  assert.deepEqual(schema.required,['task']);

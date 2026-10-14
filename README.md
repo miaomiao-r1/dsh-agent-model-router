@@ -1,6 +1,12 @@
 # DSH 代理模型
 
-配合 `dsh-our-free-model`，在左侧导航增加“代理模型”。五类角色可分别选择已启用模型，支持搜索和通道分组。配置对所有工作区共用，保存后创建的新主会话采用新映射，已有会话和任务保持原映射。
+本插件与 `dsh-our-free-model` 配合使用：先安装并启用后者提供的通道，再为 explorer、researcher、worker、tester、reviewer 五类代理角色分配其中已启用的模型，按任务分工使用不同模型通道的免费额度。通道凭据和模型可用性由 `dsh-our-free-model` 管理；本插件管理角色映射与分阶段工作流。供应商的免费额度和使用条款各自适用，部分通道可能不免费；请只选择已确认有免费额度且符合其条款的通道。
+
+## 与其他模型路由插件的区别
+
+本插件面向五角色分工和工作流，不负责检查额度余额或剩余量，也不会按余量调度、额度耗尽后自动切换模型。可选项来自固定 provider 广告清单，并按启用状态过滤；新主会话使用创建时取得的角色映射快照，保存配置不会替换已有会话的映射。因此它帮助用户把已启用通道模型分配给不同任务角色，不承诺无限免费、零费用或具体节省金额。
+
+左侧导航提供“代理模型”页面，模型列表支持搜索和通道分组。配置对所有工作区共用，保存后创建的新主会话采用新映射，已有会话和任务保持原映射。
 
 ## 使用
 
@@ -10,6 +16,18 @@
 4. 新建主会话，要求使用 `agent_role_models` 检查映射，使用 `agent_orchestrate` 分阶段执行有界任务。探索之后由根决定方案，再携带返回的 `handoff` 作为 `prior` 继续实现/验证/审查。小任务仍可由根完成；不为凑数量拆成三个 worker。
 
 开关控制本插件的执行入口，不修改 DSH 自带 Agent Teams 或其他插件的代理功能。主会话模型由原来的会话控件设置，插件不更改它。
+
+## 分层交接与委派
+
+根先调用 `agent_delegation_route`，传入确认后的 `scopeCount`、`risk`、`explicitRequest`、`needsIndependentCheck`；编排时把相同评估作为 `delegation` 传入。单范围且无需独立验证时返回 `root_required`、agentsStarted=0，由根处理。用户明确要求多代理可设置 explicitRequest=true；多个范围不自动授权并行，高风险决策由根负责。旧调用未传评估仍兼容，不按提示词长度猜复杂度。
+
+完整输入和各阶段报告保存到 `~/.dsh/agent-model-router/handoffs/<运行目录>/`。worker 接收探索/查证，tester 接收实现，reviewer 接收实现/测试。summary、evidence、commands 超过 1600 字符时节选，并附完整 JSON 的 source.path/pointer；约束、根方案、错误、未决问题和结构化发现不截断。下一角色必须按索引回查完整报告和实际文件，缺少证据时返回 blocked，不能补猜。
+
+实现必须有 `prior.rootPlan`，否则返回 needs_decision，不启动 worker。探索后由根确认方案，再携完整 handoff 继续调用。失败、取消、归档失败阻止后续阶段；报告无自动删除，按需人工清理。
+
+多阶段调用的 `result.runs` 提供各阶段 runId，顶层 runId 为最后记录阶段，agentsStarted 为总数；`result.handoff` 保留完整报告，`result.reportFiles` 给出原件路径。本机制不承诺 token 或缓存改善。
+
+修改 `engine/engine.cjs` 后执行 `npm run build:workflow`；`node scripts/build-workflow.mjs --check` 校验生成脚本同步。
 
 ## 安装与卸载
 
@@ -21,12 +39,12 @@
 dsh plugin --profile desktop add github:miaomiao-r1/dsh-agent-model-router
 ```
 
-此包入口已随源码提供，无需安装期构建。GitHub 下载与市场点击安装仍待实测；本地 tarball 安装已有隔离验收记录。
+此包入口已随源码提供，无需安装期构建。固定提交的 GitHub 源码下载、入口检查、标准 CLI 安装与卸载已在独立 profile 实测通过；市场点击安装仍待收录后验收。
 
-插件要求 Node.js 20 或更高版本。使用模型配置需先启用 `dsh-our-free-model` 所需通道，使用编排还需调用预设提供 `workflow` 工具。发布前可在源码目录运行 `npm run verify:package` 生成 `artifacts/dsh-agent-model-router-1.0.0.tgz`；公开发布后可从 GitHub Release 下载。将下例路径替换为本机 tarball 的绝对路径：
+插件要求 Node.js 20 或更高版本。使用模型配置需先启用 `dsh-our-free-model` 所需通道，使用编排还需调用预设提供 `workflow` 工具。发布前可在源码目录运行 `npm run verify:package` 生成 `artifacts/dsh-agent-model-router-1.0.0-rc.1.tgz`；公开发布后可从 GitHub Release 下载。将下例路径替换为本机 tarball 的绝对路径：
 
 ```powershell
-dsh plugin --profile desktop add "C:\绝对路径\dsh-agent-model-router-1.0.0.tgz"
+dsh plugin --profile desktop add "C:\绝对路径\dsh-agent-model-router-1.0.0-rc.1.tgz"
 dsh plugin --profile desktop remove dsh-agent-model-router
 ```
 
