@@ -10,7 +10,8 @@
 - [x] 准备发布指南、目录条目生成方式、真实 DSH 验收步骤；更新项目树及 SESSION。
 - [x] 执行 npm test（41 项通过）、npm run check、实际打包与验证，检查 diff。
 - [x] 已通过桌面内置 DSH 0.2.0-rc.2 在隔离 profile 验证标准安装和卸载，不变更真实 desktop profile。
-- [ ] 真实模型编排验收后，再确认 GitHub 仓库归属、公开发布版本并提交目录 PR。
+- [x] 用户确认使用 miaomiao-r1 账号，创建公开源码仓库并推送 main，设置 dsh-plugin topic；npm 和 Release 尚未发布。
+- [ ] 补齐真实模型编排及 GitHub 安装验收，再公开发布版本并提交目录 PR；目录 PR 需仓库创建满 1 天。
 
 验收边界：本地测试、tgz 完整性、标准 CLI 安装、真实子代理运行、市场点击安装分别记录。没有对应运行证据的阶段保持待验收。
 
