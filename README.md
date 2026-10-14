@@ -13,7 +13,28 @@
 
 ## 安装与卸载
 
-在完整插件根目录执行：
+### 发布包安装
+
+公开源码仓库：https://github.com/miaomiao-r1/dsh-agent-model-router 。可使用标准 bundle 安装源码：
+
+```powershell
+dsh plugin --profile desktop add github:miaomiao-r1/dsh-agent-model-router
+```
+
+此包入口已随源码提供，无需安装期构建。GitHub 下载与市场点击安装仍待实测；本地 tarball 安装已有隔离验收记录。
+
+插件要求 Node.js 20 或更高版本。使用模型配置需先启用 `dsh-our-free-model` 所需通道，使用编排还需调用预设提供 `workflow` 工具。发布前可在源码目录运行 `npm run verify:package` 生成 `artifacts/dsh-agent-model-router-1.0.0.tgz`；公开发布后可从 GitHub Release 下载。将下例路径替换为本机 tarball 的绝对路径：
+
+```powershell
+dsh plugin --profile desktop add "C:\绝对路径\dsh-agent-model-router-1.0.0.tgz"
+dsh plugin --profile desktop remove dsh-agent-model-router
+```
+
+使用 web profile 时，将 `desktop` 换成 `web`。已使用桌面版内置 DSH 0.2.0-rc.2 和 pnpm 11.7.0，在独立 `DSH_HOME` 的 `release-check` profile 验证 tarball 安装、bundle 注册及卸载。此结果不代表真实模型编排通过，DSH 最低兼容版本也尚未确定。首次安装后按宿主提示刷新或重启。
+
+### 开发目录链接（仅开发）
+
+以下方式仅用于本地开发和调试，不是发布包安装方式。在完整插件根目录执行：
 
 ```powershell
 node scripts/install.mjs
@@ -25,16 +46,19 @@ node scripts/install.mjs
 node scripts/uninstall.mjs
 ```
 
-卸载移除自身依赖、bundle 和安装链接，保留插件源文件与 `~/.dsh/agent-model-router/settings.json`。支持通过 `DSH_HOME` 指定独立 DSH 数据目录；不要在测试时误用真实主目录。
+开发卸载移除自身依赖、bundle 和安装链接，保留插件源文件与 `~/.dsh/agent-model-router/settings.json`。支持通过 `DSH_HOME` 指定独立 DSH 数据目录；不要在测试时误用真实主目录。
 
 ## 验证
 
 ```powershell
 node --test tests/*.test.mjs
 npm run check
+npm run verify:package
 ```
 
 测试覆盖目录重新读取、停用模型、原子保存、并发版本冲突、跨重启恢复、新旧会话映射、开关即时关闭、取消信号和安装卸载范围。HTTP 测试只连接本机隔离测试服务。
+
+`verify:package` 实际打包并解包，检查运行文件、语法、宿主导入与许可，验证开发安装器在临时目录中的安装卸载。它不启动 DSH、不请求模型；标准 CLI 实测与真实编排分别记录在 [发布指南](docs/marketplace-release.md)（源码仓库文档）。执行该命令需 npm 和系统 tar；Windows 使用系统自带 tar.exe。
 
 模型目录由宿主 `llm.listModels(provider)` 提供，使用 adapter 当前广告清单，不把上游模型总列表冒充已启用目录。凭据不传给客户端。已启用不是成功率保证，真实调用失败会明确阻断。
 

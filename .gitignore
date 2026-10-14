@@ -1,0 +1,4 @@
+node_modules/
+artifacts/
+.pnpm-store/
+debug.log
