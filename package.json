@@ -1,0 +1,45 @@
+{
+  "name": "dsh-agent-model-router",
+  "version": "1.0.0",
+  "description": "DSH 左侧代理模型配置，配合 dsh-our-free-model，五角色映射跨工作区共享并按新会话生效",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "source",
+    "engine",
+    "scripts",
+    "cordis.patch.yml",
+    "README.md",
+    "THIRD-PARTY-LICENSE.txt",
+    "LICENSE",
+    "tests",
+    "docs",
+    "文档"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check index.js && node --check client.js"
+  },
+  "dsh": {
+    "id": "dsh-agent-model-router",
+    "name": "代理模型",
+    "version": "1.0.0",
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "license": "Apache-2.0"
+}
