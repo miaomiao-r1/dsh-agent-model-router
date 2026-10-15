@@ -26,7 +26,7 @@ description:
 
 ## 本地打包准备
 
-1.0.0-rc.1 已通过 53 项本地测试、语法/工作流同步和实际包检查；该版本为预发布，最新完整实机验收与截图尚待已登录 DSH 页面。安全审查及开发卸载修复见 [security-review.md](security-review.md)。
+1.0.0-rc.1 已通过 53 项本地测试、语法/工作流同步和实际包检查；该版本为预发布，最新完整实机验收仍待完成。用户于 2026-10-15 提供的实际插件截图已保存为 `assets/agent-models.png`，根目录 `screenshots.json` 已声明该相对路径，README 同步展示；截图推荐项已完成。安全审查及开发卸载修复见 [security-review.md](security-review.md)。
 
 发布检查脚本 `scripts/verify-package.mjs` 用于检查实际 `.tgz` 解包内容、入口与依赖、workflow、许可文件，以及隔离环境中的安装和卸载范围。使用 `npm run verify:package` 执行。打包产物写入 `artifacts/*.tgz`；它是构建产物，不纳入项目树维护清单。
 

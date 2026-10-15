@@ -26,6 +26,8 @@
     "scripts/uninstall.mjs",
     "cordis.patch.yml",
     "README.md",
+    "screenshots.json",
+    "assets/agent-models.png",
     "docs/marketplace-release.md",
     "docs/security-review.md",
     "THIRD-PARTY-LICENSE.txt",
