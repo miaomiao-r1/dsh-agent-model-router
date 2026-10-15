@@ -3,3 +3,14 @@ artifacts/
 .pnpm-store/
 debug.log
 .playwright-mcp/
+
+# Local agent instructions, development plans, and acceptance records
+/AGENTS.md
+/文档/
+/docs/SESSION.md
+/docs/handoff-routing-plan.md
+/docs/implementation-plan.md
+/docs/marketplace-release-plan.md
+/docs/real-acceptance.md
+/docs/superpowers/
+/docs/设计提案.md

@@ -34,6 +34,10 @@ const safePath = value => {
 };
 
 function decode(raw,role) {
+  // DSH workflow agent(schema) returns null for unsuccessful runs or missing
+  // structured output. The hook does not expose the child's stop reason.
+  if(raw === null)
+    return {status:"blocked",summary:"Host returned no structured result; inspect the child session stop reason (for example max-tokens, error, or missing structured output).",outputUnavailable:true};
   let value=raw;
   if(typeof value === "string") {
     try { value=JSON.parse(value.trim().replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"")); }
