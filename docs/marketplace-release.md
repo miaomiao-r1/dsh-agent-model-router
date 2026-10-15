@@ -10,6 +10,7 @@
 url: https://github.com/miaomiao-r1/dsh-agent-model-router
 name: miaomiao-r1/dsh-agent-model-router
 category: workflow
+tarball: https://github.com/miaomiao-r1/dsh-agent-model-router/releases/download/v1.0.0-rc.1/dsh-agent-model-router-1.0.0-rc.1.tgz
 description:
   en: Assign enabled dsh-our-free-model channel models across five agent roles and run staged workflows to help use available free-tier quotas by task role.
   zh: 配合 dsh-our-free-model 将已启用的通道模型分配给五类代理角色并执行分阶段工作流，按任务角色利用可用免费额度。
@@ -17,7 +18,9 @@ description:
 
 使用前需安装并启用 `dsh-our-free-model`。它管理通道凭据与模型可用性；本插件管理五角色映射和 workflow。免费额度与使用条款由各供应商决定，部分通道可能不免费，用户需确认所选通道确有免费额度且符合其条款。插件按固定 provider 广告清单和启用状态提供模型选项，不查询额度或余额，不按剩余额度调度，也不会在额度耗尽时自动切换；因此条目描述的是按角色分配已启用模型以利用免费额度的用途，不是无限免费、零费用或节省金额保证。
 
-发布包可通过 GitHub Release 的固定 tag 对应 tarball 分发，再在条目中添加 `tarball` 字段。当前尚未上传 Release 附件，不填写不存在的下载链接。若另行发布到 npm，package.json 的 `repository` 已真实指回该插件仓库；无论是否发布 npm 都不要添加 `npm` key，目录自动关联。
+已发布 [v1.0.0-rc.1 预发布版](https://github.com/miaomiao-r1/dsh-agent-model-router/releases/tag/v1.0.0-rc.1)，提供上述固定 tag 的 tarball 和 SHA256SUMS.txt。安装包 SHA256 为 `5b9408a537adf5ce556ae5f6140a96350ca7f0a784d082a23d8119f825a7c2ca`。该附件已从公开 URL 经标准 CLI 在独立 profile 安装、检查入口并卸载；GitHub tag 源码安装亦已完成同样验证。尚未发布 npm，Release 路线已提供可安装下载源；若后续发布 npm，repository 必须继续指回本仓库，不在目录条目里填写 npm key。
+
+实际投稿文件已准备为 `docs/marketplace-entry.yml`；提交到目录仓库时放到 `data/plugins/miaomiao-r1__dsh-agent-model-router.yml`，只提交该条目，不改目录的生成 README。公开仓库创建于北京时间 2026-10-15 01:46:11，满 24 小时前不提交 PR。真实完整验收和截图仍按下文分别记录。
 
 ## 本地打包准备
 
