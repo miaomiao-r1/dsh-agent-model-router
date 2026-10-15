@@ -24,6 +24,8 @@
 
 ## 待验收
 
+- 2026-10-15 新导出会话“DSH代理模型路由验收--6dcf4f67.md”已对照原始会话日志：cwd仍为默认工作区；agent_role_models和agent_delegation_route各调用1次，agent_orchestrate调用0次，workflow事件为空。只确认新工具已加载和前置读取，不记为explore/research子代理或五角色验收通过。正式项目的acceptance.mjs、assets/agent-models.png及screenshots.json均未出现。该次没有实际启动编排，不能据此认定发生了子代理沙箱失败。
+
 - 新分层交接的真实多阶段运行、子代理回查原件、新委派工具和 token/缓存指标仍待实机验收。重启宿主加载新工具；此前单阶段 explore 成功不代替新功能验收。报告无自动保留期。
 - 浏览器连接 DSH 返回 authentication required；用户当前打开的是桌面窗口，浏览器工具无法控制该窗口。真实角色测试和实际界面截图需已登录 Edge 页面，不能用假数据截图代替。
 
@@ -35,4 +37,4 @@
 
 ## 下一步
 
-依照 docs/real-acceptance.md 完成正式目录、五角色、分层交接、新旧会话和开关的真实验收与插件页面截图。当前 Playwright 独立浏览器仍返回401，需要已登录连接。投稿最早北京时间2026-10-16 01:46:11；未实际取得截图前不创建失效的 screenshots.json。不得修改默认工作区中的历史源码副本。
+先在DSH切换工作区为C:\Users\14173\Documents\agent_role_models，再新建主会话，依照docs/real-acceptance.md实际调用编排，不能只把目标路径写入默认工作区会话的提示词。模型工具验收不以浏览器登录为前提；配置页面和实机截图另需已登录界面。投稿最早北京时间2026-10-16 01:46:11；未实际取得截图前不创建失效的screenshots.json。不得修改默认工作区中的历史源码副本。
