@@ -3,5 +3,5 @@ name: miaomiao-r1/dsh-agent-model-router
 category: workflow
 tarball: https://github.com/miaomiao-r1/dsh-agent-model-router/releases/download/v1.0.0-rc.1/dsh-agent-model-router-1.0.0-rc.1.tgz
 description:
-  en: Assign enabled dsh-our-free-model channel models across five agent roles and run staged workflows to help use available free-tier quotas by task role.
-  zh: 配合 dsh-our-free-model 将已启用的通道模型分配给五类代理角色并执行分阶段工作流，按任务角色利用可用免费额度。
+  en: Requires dsh-our-free-model to use enabled channel models and available free-tier quotas across five separately mapped agent roles, with cross-workspace settings, per-session mapping snapshots and staged report handoffs.
+  zh: 依赖 dsh-our-free-model，按五角色分别映射已启用通道模型以利用可用免费额度，支持跨工作区共享设置、新旧会话各自保留映射和分阶段报告交接。

@@ -12,11 +12,13 @@ name: miaomiao-r1/dsh-agent-model-router
 category: workflow
 tarball: https://github.com/miaomiao-r1/dsh-agent-model-router/releases/download/v1.0.0-rc.1/dsh-agent-model-router-1.0.0-rc.1.tgz
 description:
-  en: Assign enabled dsh-our-free-model channel models across five agent roles and run staged workflows to help use available free-tier quotas by task role.
-  zh: 配合 dsh-our-free-model 将已启用的通道模型分配给五类代理角色并执行分阶段工作流，按任务角色利用可用免费额度。
+  en: Requires dsh-our-free-model to use enabled channel models and available free-tier quotas across five separately mapped agent roles, with cross-workspace settings, per-session mapping snapshots and staged report handoffs.
+  zh: 依赖 dsh-our-free-model，按五角色分别映射已启用通道模型以利用可用免费额度，支持跨工作区共享设置、新旧会话各自保留映射和分阶段报告交接。
 ```
 
-使用前需安装并启用 `dsh-our-free-model`。它管理通道凭据与模型可用性；本插件管理五角色映射和 workflow。免费额度与使用条款由各供应商决定，部分通道可能不免费，用户需确认所选通道确有免费额度且符合其条款。插件按固定 provider 广告清单和启用状态提供模型选项，不查询额度或余额，不按剩余额度调度，也不会在额度耗尽时自动切换；因此条目描述的是按角色分配已启用模型以利用免费额度的用途，不是无限免费、零费用或节省金额保证。
+投稿时的差异说明：本插件依赖 `dsh-our-free-model`，为探索、查证、实现、测试、审查五角色分别映射其已启用的通道模型，让各通道的可用免费额度用于不同任务环节。设置跨工作区共享；保存后新建的主会话采用新映射，已有会话保留原映射。分阶段执行通过角色相关摘要与完整报告路径交接，后续角色可回查原件。用户自行按可用额度与模型能力配置角色。应以这些具体行为说明定位，不声称其他路由插件都缺少相同功能。
+
+使用前需安装并启用 `dsh-our-free-model`。它管理通道凭据与模型可用性；本插件管理五角色映射和 workflow。免费额度与使用条款由各供应商决定，部分通道可能不免费，同一账号的多个模型也可能共享额度。插件按固定 provider 广告清单和启用状态提供模型选项，不查询额度或余额，不按剩余额度调度，也不会在额度耗尽时自动切换；因此条目描述的是按角色分配已启用模型以利用免费额度的用途，不是自动耗尽所有额度、无限免费、零费用或节省金额保证。
 
 已发布 [v1.0.0-rc.1 预发布版](https://github.com/miaomiao-r1/dsh-agent-model-router/releases/tag/v1.0.0-rc.1)，提供上述固定 tag 的 tarball 和 SHA256SUMS.txt。安装包 SHA256 为 `5b9408a537adf5ce556ae5f6140a96350ca7f0a784d082a23d8119f825a7c2ca`。该附件已从公开 URL 经标准 CLI 在独立 profile 安装、检查入口并卸载；GitHub tag 源码安装亦已完成同样验证。尚未发布 npm，Release 路线已提供可安装下载源；若后续发布 npm，repository 必须继续指回本仓库，不在目录条目里填写 npm key。
 

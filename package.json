@@ -1,7 +1,7 @@
 {
   "name": "dsh-agent-model-router",
   "version": "1.0.0-rc.1",
-  "description": "配合 dsh-our-free-model 按五角色分配已启用通道模型，利用可用免费额度执行分阶段代理工作流",
+  "description": "配合 dsh-our-free-model 利用可用免费额度，支持五角色分别映射、跨工作区共享设置、新旧会话各自保留映射和分阶段交接",
   "keywords": ["dsh-plugin", "deepseek-harness", "agent", "workflow", "model-router"],
   "repository": {
     "type": "git",
