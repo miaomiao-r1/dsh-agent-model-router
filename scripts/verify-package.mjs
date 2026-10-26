@@ -4,9 +4,11 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+import {RuntimeDiagnostics} from '../source/runtime.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const required=['index.js','client.js','cordis.patch.yml','source/defaults.mjs','source/store.mjs','source/router.mjs','source/http.mjs','source/delegation.mjs','source/handoff.mjs','engine/engine.cjs','engine/orchestrate.workflow.js','scripts/install.mjs','scripts/uninstall.mjs','LICENSE','THIRD-PARTY-LICENSE.txt','README.md'];
+const required=['index.js','client.js','cordis.patch.yml','source/defaults.mjs','source/store.mjs','source/router.mjs','source/http.mjs','source/delegation.mjs','source/handoff.mjs','source/lock.mjs','source/paths.mjs','source/runs.mjs','source/policy.mjs','source/runtime.mjs','engine/engine.cjs','engine/orchestrate.workflow.js','scripts/install.mjs','scripts/uninstall.mjs','LICENSE','THIRD-PARTY-LICENSE.txt','README.md'];
 function inside(directory,file){
   assert.equal(typeof file,'string','Manifest entry must be a path');
   const target=path.resolve(directory,file),relative=path.relative(directory,target);
@@ -35,11 +37,13 @@ export async function verifyUnpacked(directory){
   const host=await import(pathToFileURL(path.join(directory,manifest.main)).href);
   assert.equal(typeof host.apply,'function');
   assert.deepEqual(host.inject,['llm','tools']);
-  return {name:manifest.name,version:manifest.version,runtimeFiles:required.length};
+  const runtime=new RuntimeDiagnostics({root:directory}).status();
+  return {name:manifest.name,version:manifest.version,runtimeFiles:required.length,buildId:runtime.loadedBuildId,workflowHash:runtime.loadedScriptHash,minimumNode:runtime.minimumNode};
 }
 
 async function verifyRelease(){
   assert.ok(process.env.npm_execpath,'Run this script using npm run verify:package');
+  execFileSync(process.execPath,[path.join(root,'scripts/build-workflow.mjs'),'--check'],{cwd:root,windowsHide:true,stdio:'pipe'});
   const artifacts=path.join(root,'artifacts');
   await fs.mkdir(artifacts,{recursive:true});
   const scratch=await fs.mkdtemp(path.join(os.tmpdir(),'amr-release-'));
@@ -65,7 +69,9 @@ async function verifyRelease(){
     assert.equal(await fs.realpath(result.link),await fs.realpath(installed));
     await uninstall({home});
     assert.deepEqual(JSON.parse(await fs.readFile(profileManifest,'utf8')),original);
-    console.log(JSON.stringify({...metadata,archive,bytes:packed.size,integrity:packed.integrity,archiveVerified:true,developmentInstallerRoundTrip:true,nativeDshInstall:'not tested',realOrchestration:'not tested'},null,2));
+    const verification={...metadata,archive,bytes:packed.size,integrity:packed.integrity,sha256:createHash('sha256').update(await fs.readFile(archive)).digest('hex'),archiveVerified:true,developmentInstallerRoundTrip:true,nativeDshInstall:'not tested',realOrchestration:'not tested',checkedAt:new Date().toISOString()};
+    await fs.writeFile(path.join(artifacts,'candidate-verification.json'),JSON.stringify(verification,null,2)+'\n');
+    console.log(JSON.stringify(verification,null,2));
   }finally{
     assert.equal(path.dirname(scratch),path.resolve(os.tmpdir()));
     assert.ok(path.basename(scratch).startsWith('amr-release-'));

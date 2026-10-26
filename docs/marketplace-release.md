@@ -12,13 +12,13 @@ name: miaomiao-r1/dsh-agent-model-router
 category: workflow
 tarball: https://github.com/miaomiao-r1/dsh-agent-model-router/releases/download/v1.0.0-rc.1/dsh-agent-model-router-1.0.0-rc.1.tgz
 description:
-  en: Requires dsh-our-free-model to use enabled channel models and available free-tier quotas across five separately mapped agent roles, with cross-workspace settings, per-session mapping snapshots and staged report handoffs.
-  zh: 依赖 dsh-our-free-model，按五角色分别映射已启用通道模型以利用可用免费额度，支持跨工作区共享设置、新旧会话各自保留映射和分阶段报告交接。
+  en: Assigns any model the DeepSeek Harness currently advertises to six separately mapped agent roles including a vision role for image recognition, with free selection across all registered providers, cross-workspace settings, per-session mapping snapshots and staged report handoffs; dsh-our-free-model is optional and can supply free-tier channels.
+  zh: 从 DeepSeek Harness 当前注册并广告的全部模型中，为六角色（含识图）自由选择并分别映射，不限特定插件或 provider 清单；支持跨工作区共享设置、新旧会话各自保留映射和分阶段报告交接。dsh-our-free-model 变为可选，可提供免费额度通道。
 ```
 
-投稿时的差异说明：本插件依赖 `dsh-our-free-model`，为探索、查证、实现、测试、审查五角色分别映射其已启用的通道模型，让各通道的可用免费额度用于不同任务环节。设置跨工作区共享；保存后新建的主会话采用新映射，已有会话保留原映射。分阶段执行通过角色相关摘要与完整报告路径交接，后续角色可回查原件。用户自行按可用额度与模型能力配置角色。应以这些具体行为说明定位，不声称其他路由插件都缺少相同功能。
+投稿时的差异说明（本地候选 1.0.0-rc.3 起）：本插件从宿主 `llm.listProviders()` / `llm.listModels(provider)` 读取当前全部已注册通道的模型，为探索、查证、实现、测试、审查、识图六角色自由映射，不限制特定插件或固定 provider 清单。设置跨工作区共享；保存后新建的主会话采用新映射，已有会话保留原映射。分阶段执行通过角色相关摘要与完整报告路径交接，后续角色可回查原件。用户自行按模型能力配置角色。应以这些具体行为说明定位，不声称其他路由插件都缺少相同功能。
 
-使用前需安装并启用 `dsh-our-free-model`。它管理通道凭据与模型可用性；本插件管理五角色映射和 workflow。免费额度与使用条款由各供应商决定，部分通道可能不免费，同一账号的多个模型也可能共享额度。插件按固定 provider 广告清单和启用状态提供模型选项，不查询额度或余额，不按剩余额度调度，也不会在额度耗尽时自动切换；因此条目描述的是按角色分配已启用模型以利用免费额度的用途，不是自动耗尽所有额度、无限免费、零费用或节省金额保证。
+`dsh-our-free-model` 不再是必需依赖；安装并启用时可为其免费通道分配角色。通道凭据与模型可用性由对应 provider 管理；本插件管理六角色映射和 workflow。免费额度与使用条款由各供应商决定，部分通道可能不免费，同一账号的多个模型也可能共享额度。插件按宿主当前广告清单提供模型选项，不查询额度或余额，不按剩余额度调度，也不会在额度耗尽时自动切换；因此条目描述的是按角色分配可用模型的用途，不是自动耗尽所有额度、无限免费、零费用或节省金额保证。
 
 已发布 [v1.0.0-rc.1 预发布版](https://github.com/miaomiao-r1/dsh-agent-model-router/releases/tag/v1.0.0-rc.1)，提供上述固定 tag 的 tarball 和 SHA256SUMS.txt。安装包 SHA256 为 `5b9408a537adf5ce556ae5f6140a96350ca7f0a784d082a23d8119f825a7c2ca`。该附件已从公开 URL 经标准 CLI 在独立 profile 安装、检查入口并卸载；GitHub tag 源码安装亦已完成同样验证。尚未发布 npm，Release 路线已提供可安装下载源；若后续发布 npm，repository 必须继续指回本仓库，不在目录条目里填写 npm key。
 
@@ -44,7 +44,7 @@ description:
 - 切换 explorer/worker 等角色映射后，记录真实模型路由证据。
 - 保存新映射后，验证新建主会话采用新映射，并验证已有会话继续使用旧映射。
 - 分别验证启用和关闭多代理模式；关闭后确认新调用受开关控制，同时核对已运行任务的实际行为。
-- 记录调用预设是否提供可见的 `workflow` 工具，以及 `dsh-our-free-model` 通道是否已启用。
+- 记录调用预设是否提供可见的 `workflow` 工具，以及宿主当前注册并广告了哪些模型通道。
 
 真实 DSH 编排应有宿主运行记录或等价证据。`npm test`、`npm run check`、包检查和模拟宿主结果须单独记载，不能代替上述人工验收，也不能表述为真实编排已成功。真实运行尚未完成时，相应项目继续保持待验收。
 

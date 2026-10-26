@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, open, readFile, rename, rm } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { acquireLock, releaseLock } from './lock.mjs';
+
+export { acquireLock, releaseLock } from './lock.mjs';
 
 export const ROLE_NAMES = Object.freeze([
   'explorer',
@@ -8,6 +11,8 @@ export const ROLE_NAMES = Object.freeze([
   'tester',
   'researcher',
   'reviewer',
+  'visioner',
+  'scribe',
 ]);
 
 function conflictError(message) {
@@ -26,11 +31,11 @@ function copyRoles(roles) {
 
 function validateRoles(roles) {
   if (!roles || typeof roles !== 'object' || Array.isArray(roles)) {
-    throw new TypeError('roles must be an object containing all five roles');
+    throw new TypeError('roles must be an object containing all seven roles');
   }
   const keys = Object.keys(roles);
   if (keys.length !== ROLE_NAMES.length || ROLE_NAMES.some((role) => !Object.hasOwn(roles, role))) {
-    throw new TypeError('roles must contain exactly the five supported roles');
+    throw new TypeError('roles must contain exactly the seven supported roles');
   }
   for (const role of ROLE_NAMES) {
     const config = roles[role];
@@ -117,6 +122,17 @@ export class SettingsStore {
       const error = new TypeError('settings file contains malformed JSON', { cause });
       throw error;
     }
+    // Migrate legacy revisions that predate a role: backfill any missing role
+    // from the defaults so old five-role settings files upgrade transparently.
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.revisions)) {
+      for (const revision of parsed.revisions) {
+        if (revision && revision.roles && typeof revision.roles === 'object') {
+          for (const role of ROLE_NAMES) {
+            if (!Object.hasOwn(revision.roles, role)) revision.roles[role] = this.defaults[role];
+          }
+        }
+      }
+    }
     return validateState(parsed);
   }
 
@@ -147,13 +163,7 @@ export class SettingsStore {
     await mkdir(directory, { recursive: true });
 
     const lockPath = `${this.file}.lock`;
-    let lockHandle;
-    try {
-      lockHandle = await open(lockPath, 'wx', 0o600);
-    } catch (error) {
-      if (error.code === 'EEXIST') throw conflictError('settings are being updated by another writer');
-      throw error;
-    }
+    const lock = await acquireLock(lockPath);
 
     let tempPath;
     try {
@@ -188,8 +198,7 @@ export class SettingsStore {
       return snapshot(revision, nextState.enabled);
     } finally {
       if (tempPath) await rm(tempPath, { force: true }).catch(() => {});
-      await lockHandle.close().catch(() => {});
-      await rm(lockPath, { force: true }).catch(() => {});
+      await releaseLock(lock).catch(() => {});
     }
   }
 

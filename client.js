@@ -1,10 +1,20 @@
 (() => {
   window.__ModuleLoader__.load({id:'dsh-agent-model-router',factory:(require)=>{
     const React=require('react'),el=React.createElement;
-    const ROLES=[['explorer','探索','定位代码、文件和执行路径'],['worker','实现','按明确范围完成改动'],['tester','验证','执行测试并核对结果'],['researcher','查证','核实文档与技术事实'],['reviewer','审查','独立检查变更与风险']];
+    const ROLES=[['visioner','识图','识别图片内容、文字与布局'],['explorer','探索','定位代码、文件和执行路径'],['worker','实现','按明确范围完成改动'],['tester','验证','执行测试并核对结果'],['researcher','查证','核实文档与技术事实'],['reviewer','审查','独立检查变更与风险'],['scribe','文书','格式化、整理与文档搬运']];
     const routeKey=r=>JSON.stringify([r.provider,r.model]);
     const clone=v=>JSON.parse(JSON.stringify(v));
     function filteredModels(models,query,provider){const q=query.trim().toLowerCase();return models.filter(m=>(!provider||m.provider===provider)&&(!q||[m.name,m.model,m.provider,m.providerName].join(' ').toLowerCase().includes(q)));}
+    // Modality metadata is available only when the adapter advertises it. An
+    // absent declaration means "unknown", not "text only", so the hint appears
+    // only when the selected model explicitly declares text-only input.
+    function modalityWarning(role,model){if(role!=='visioner'||!Array.isArray(model?.inputModalities))return '';return model.inputModalities.includes('image')?'':'该模型未声明图片输入能力，识图阶段可能失败。';}
+    function runtimeText(runtime){
+      if(!runtime)return {summary:'宿主尚未提供运行构建信息',warning:'请重新加载插件后查看实际运行版本。'};
+      const summary='已加载 '+runtime.version+' · 构建 '+String(runtime.loadedBuildId||'未知').slice(0,12)+' · Node '+runtime.nodeVersion;
+      const warning=runtime.reloadRequired?'源码与已加载构建不同，请重新加载本插件；仅新建会话不能加载新代码。':!runtime.capabilities?.toolGuard||!runtime.capabilities?.dispatchMiddleware?'宿主缺少角色边界所需的工具 guard / 执行中间件，请核对兼容版本。':'';
+      return {summary,warning};
+    }
     async function request(url,options={}){const response=await fetch('/agent-model-router/'+url,{...options,credentials:'same-origin',cache:'no-store'});let body;try{body=await response.json();}catch{throw Error('插件接口没有返回有效结果，请检查加载状态');}if(!response.ok)throw Object.assign(Error(body.error||'请求失败'),{status:response.status});return body;}
     const CSS=`
       .amr-page{--amr-bg:var(--dsw-alias-bg-module-platform,#fff);--amr-text:var(--dsw-alias-label-primary,#20242b);--amr-muted:var(--dsw-alias-label-secondary,#7a818d);--amr-line:rgba(128,140,160,.2);color:var(--amr-text);background:var(--amr-bg);height:100%;overflow:auto;font:inherit}
@@ -25,13 +35,14 @@
         if(savingRef.current)return;const ticket=++serial.current;setLoading(true);setError('');
         try{const payload=await request('state');if(!mounted.current||ticket!==serial.current)return;
           if(!dirtyRef.current||reset){setData(payload);setChoices(clone(payload.settings.roles));dirtyRef.current=false;}
-          else{setData(previous=>({...previous,catalogue:payload.catalogue,availability:payload.availability}));setNotice('已刷新启用模型。未保存的选择保留；若其他页面已修改配置，保存时会提示冲突。');}
+          else{setData(previous=>({...previous,catalogue:payload.catalogue,availability:payload.availability,runtime:payload.runtime}));setNotice('已刷新启用模型。未保存的选择保留；若其他页面已修改配置，保存时会提示冲突。');}
           if(!payload.catalogue.ok)setError(payload.catalogue.error||'模型目录不可用');
         }catch(e){if(mounted.current&&ticket===serial.current){setError(e.message);setData(previous=>previous?{...previous,catalogue:{ok:false,models:[]}}:null);}}
         finally{if(mounted.current&&ticket===serial.current)setLoading(false);}
       },[]);
       React.useEffect(()=>{mounted.current=true;load();const focus=()=>load(),visible=()=>{if(!document.hidden)load();};window.addEventListener('focus',focus);document.addEventListener('visibilitychange',visible);return()=>{mounted.current=false;++serial.current;window.removeEventListener('focus',focus);document.removeEventListener('visibilitychange',visible);};},[load]);
       const all=data?.catalogue?.models||[],enabled=new Set(all.map(routeKey));
+      const runtime=runtimeText(data?.runtime),providerErrors=Object.entries(data?.catalogue?.errors||{});
       const matches=filteredModels(all,query,provider),groups=new Map();for(const m of matches){if(!groups.has(m.provider))groups.set(m.provider,{name:m.providerName||m.provider,models:[]});groups.get(m.provider).models.push(m);}
       const providers=[...new Map(all.map(m=>[m.provider,m.providerName||m.provider])).entries()];
       const valid=Boolean(choices&&ROLES.every(([role])=>enabled.has(routeKey(choices[role]))));
@@ -48,24 +59,26 @@
         finally{savingRef.current=false;if(mounted.current)setSaving(false);}
       }
       return el('div',{className:'amr-page'},el('main',{className:'amr-content'},
-        el('header',{className:'amr-header'},el('div',{className:'amr-kicker'},'多角色编排'),el('h1',{className:'amr-title'},'代理模型'),el('p',{className:'amr-sub'},'为每个角色选择合适的通道和模型。目录来自 dsh-our-free-model 当前已启用的模型。'),el('span',{className:'amr-global'},'所有工作区共用 · 新会话生效')),
+        el('header',{className:'amr-header'},el('div',{className:'amr-kicker'},'多角色编排'),el('h1',{className:'amr-title'},'代理模型'),el('p',{className:'amr-sub'},'为每个角色自由选择模型。目录来自当前 DeepSeek Harness 模型服务注册的全部通道，不限特定插件。'),el('span',{className:'amr-global'},'所有工作区共用 · 新会话生效')),
+        data?el('section',{className:'amr-message',role:'status'},el('div',null,runtime.summary),runtime.warning?el('div',{className:'amr-warning'},runtime.warning):null,el('div',{className:'amr-note'},'此页显示最新全局映射；已有会话的实际版本请用 agent_role_models 查询。')):null,
         el('section',{className:'amr-mode'},el('div',null,el('div',{className:'amr-mode-title'},'多代理模式',data?' · '+(data.settings.enabled?'已开启':'已关闭'):''),el('div',{className:'amr-mode-hint'},'开关立即作用于本插件的新编排；已有任务不中断。')),el('button',{className:'amr-switch',role:'switch','aria-label':'多代理模式','aria-checked':Boolean(data?.settings.enabled),disabled:!data||loading||saving,onClick:toggleMode},el('span',{'aria-hidden':true}))),
-        el('div',{className:'amr-toolbar'},el('input',{className:'amr-field amr-search',type:'search',value:query,placeholder:'搜索模型名称、ID 或通道','aria-label':'搜索启用模型',onChange:e=>setQuery(e.target.value)}),el('select',{className:'amr-field',value:provider,'aria-label':'筛选通道',onChange:e=>setProvider(e.target.value)},el('option',{value:''},'全部通道'),...providers.map(([id,name])=>el('option',{key:id,value:id},name))),el('button',{className:'amr-btn',onClick:()=>load(),disabled:loading||saving},loading?'刷新中…':'刷新')),
+        el('div',{className:'amr-toolbar'},el('input',{className:'amr-field amr-search',type:'search',value:query,placeholder:'搜索模型名称、ID 或通道','aria-label':'搜索模型',onChange:e=>setQuery(e.target.value)}),el('select',{className:'amr-field',value:provider,'aria-label':'筛选通道',onChange:e=>setProvider(e.target.value)},el('option',{value:''},'全部通道'),...providers.map(([id,name])=>el('option',{key:id,value:id},name))),el('button',{className:'amr-btn',onClick:()=>load(),disabled:loading||saving},loading?'刷新中…':'刷新')),
         error?el('div',{className:'amr-message amr-error',role:'alert'},error):null,
+        providerErrors.length?el('div',{className:'amr-message',role:'status'},'部分通道读取失败；健康通道仍可使用。',...providerErrors.map(([name,message])=>el('div',{className:'amr-warning',key:name},name+'：'+message))):null,
         notice?el('div',{className:'amr-message',role:'status'},notice):null,
-        !choices?el('div',{className:'amr-empty'},loading?'正在读取角色设置与启用模型…':'暂时无法读取插件设置。'):el('div',{className:'amr-rows'},...ROLES.map(([role,title,description],i)=>{
-          const selected=routeKey(choices[role]),available=enabled.has(selected),shown=matches.some(m=>routeKey(m)===selected);
+        !choices?el('div',{className:'amr-empty'},loading?'正在读取角色设置与模型目录…':'暂时无法读取插件设置。'):el('div',{className:'amr-rows'},...ROLES.map(([role,title,description],i)=>{
+          const selected=routeKey(choices[role]),available=enabled.has(selected),shown=matches.some(m=>routeKey(m)===selected),chosen=all.find(m=>routeKey(m)===selected),visionNote=modalityWarning(role,chosen);
           return el('section',{className:'amr-row',key:role},el('div',{className:'amr-icon','aria-hidden':true},String(i+1).padStart(2,'0')),el('div',null,el('div',{className:'amr-label'},title,el('span',{className:'amr-role'},role)),el('div',{className:'amr-desc'},description)),el('div',{className:'amr-selection'},el('select',{className:'amr-field amr-model',value:selected,'aria-label':role+' 模型',disabled:loading||saving||!data.catalogue.ok,onChange:e=>{const [p,m]=JSON.parse(e.target.value);setChoices(previous=>({...previous,[role]:{provider:p,model:m}}));setNotice('');}},
-            !shown?el('option',{value:selected,disabled:!available},available?'当前：'+choices[role].model:'未启用：'+choices[role].model):null,
-            ...[...groups.entries()].map(([id,g])=>el('optgroup',{label:g.name,key:id},...g.models.map(m=>el('option',{key:routeKey(m),value:routeKey(m)},m.name))))),el('div',{className:'amr-route'},choices[role].provider+' / '+choices[role].model),!available?el('div',{className:'amr-warning'},'当前模型未启用，请重新选择。'):null));
+            !shown?el('option',{value:selected,disabled:!available},available?'当前：'+choices[role].model:'不可用：'+choices[role].model):null,
+            ...[...groups.entries()].map(([id,g])=>el('optgroup',{label:g.name,key:id},...g.models.map(m=>el('option',{key:routeKey(m),value:routeKey(m),...(m.description?{title:m.description}:{})},m.name))))),el('div',{className:'amr-route'},choices[role].provider+' / '+choices[role].model),!available?el('div',{className:'amr-warning'},'当前模型不在宿主模型目录中或通道不可用，请重新选择。'):null,visionNote?el('div',{className:'amr-warning'},visionNote):null));
         })),
-        el('footer',{className:'amr-footer'},el('div',{className:'amr-note'},'已启用不代表每次调用都成功。模型停用后不会自动替换。',el('br'),data?'配置版本 '+data.settings.version+' · '+all.length+' 个启用模型':'仅修改角色映射，不改变主会话模型。'),el('div',{className:'amr-actions'},el('button',{className:'amr-btn',disabled:saving||loading,onClick:()=>load(true)},'重新载入'),el('button',{className:'amr-btn amr-btn-primary',disabled:!dirty||!valid||loading||saving||!data?.catalogue.ok,onClick:save},saving?'保存中…':'保存设置')))));
+        el('footer',{className:'amr-footer'},el('div',{className:'amr-note'},'目录由宿主模型服务提供，插件不内置通道白名单；可用不代表每次调用都成功，模型不可用后不会自动替换。',el('br'),data?'配置版本 '+data.settings.version+' · '+all.length+' 个可用模型':'仅修改角色映射，不改变主会话模型。'),el('div',{className:'amr-actions'},el('button',{className:'amr-btn',disabled:saving||loading,onClick:()=>load(true)},'重新载入'),el('button',{className:'amr-btn amr-btn-primary',disabled:!dirty||!valid||loading||saving||!data?.catalogue.ok,onClick:save},saving?'保存中…':'保存设置')))));
     }
     function apply(ctx){
       ctx.effect(()=>{const style=document.createElement('style');style.setAttribute('data-plugin','dsh-agent-model-router');style.textContent=CSS;document.head.appendChild(style);return()=>style.remove();},'agent model router styles');
       ctx.slots.inject('sidebar.panellist',()=>ctx.slots.register({name:'sidebar.panellist',id:'agent-model-router',order:45,label:()=> '代理模型'},()=>el('svg',{width:18,height:18,viewBox:'0 0 20 20',fill:'none',stroke:'currentColor',strokeWidth:1.4},el('path',{d:'M3 5h14M3 10h14M3 15h14'}),el('circle',{cx:7,cy:5,r:2,fill:'var(--amr-bg,currentColor)'}),el('circle',{cx:13,cy:10,r:2}),el('circle',{cx:8,cy:15,r:2}))));
       ctx.slots.inject('main',()=>ctx.slots.register({name:'main',key:'agent-model-router'},()=>el(ModelPage)));
     }
-    return {name:'dsh-agent-model-router',inject:['slots'],apply,__test:{ModelPage,filteredModels,routeKey,CSS,ROLES}};
+    return {name:'dsh-agent-model-router',inject:['slots'],apply,__test:{ModelPage,filteredModels,modalityWarning,routeKey,runtimeText,CSS,ROLES}};
   }});
 })();

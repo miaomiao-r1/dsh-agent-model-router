@@ -1,8 +1,14 @@
 {
   "name": "dsh-agent-model-router",
-  "version": "1.0.0-rc.1",
-  "description": "配合 dsh-our-free-model 利用可用免费额度，支持五角色分别映射、跨工作区共享设置、新旧会话各自保留映射和分阶段交接",
-  "keywords": ["dsh-plugin", "deepseek-harness", "agent", "workflow", "model-router"],
+  "version": "1.0.0-rc.3",
+  "description": "为探索、查证、实现、测试、审查、识图、文书七角色自由选择 DeepSeek Harness 全部已注册模型并分阶段编排；跨工作区共享映射、新旧会话各自保留映射、角色相关报告交接",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "agent",
+    "workflow",
+    "model-router"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miaomiao-r1/dsh-agent-model-router.git"
@@ -30,22 +36,25 @@
     "assets/agent-models.png",
     "docs/marketplace-release.md",
     "docs/security-review.md",
+    "docs/release-notes-1.0.0-rc.2.md",
+    "docs/release-notes-1.0.0-rc.3.md",
     "THIRD-PARTY-LICENSE.txt",
     "LICENSE"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "build:workflow": "node scripts/build-workflow.mjs",
     "check": "node --check index.js && node --check client.js && node --check scripts/verify-package.mjs && node scripts/build-workflow.mjs --check",
-    "verify:package": "node scripts/verify-package.mjs"
+    "verify:package": "node scripts/verify-package.mjs",
+    "verify:host-contract": "node scripts/verify-host-contract.mjs"
   },
   "dsh": {
     "id": "dsh-agent-model-router",
     "name": "代理模型",
-    "version": "1.0.0-rc.1",
+    "version": "1.0.0-rc.3",
     "bundle": {
       "patch": "./cordis.patch.yml"
     },

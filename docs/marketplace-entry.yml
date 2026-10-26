@@ -1,7 +1,9 @@
+# 当前工作区准备的是本地候选 1.0.0-rc.3，尚未提交收录或发布。
+# 下方 tarball 是已发布的 rc.1 历史附件链接，保留其真实来源；rc.2/rc.3 未发布前不要替换为猜测的 URL。
 url: https://github.com/miaomiao-r1/dsh-agent-model-router
 name: miaomiao-r1/dsh-agent-model-router
 category: workflow
 tarball: https://github.com/miaomiao-r1/dsh-agent-model-router/releases/download/v1.0.0-rc.1/dsh-agent-model-router-1.0.0-rc.1.tgz
 description:
-  en: Requires dsh-our-free-model to use enabled channel models and available free-tier quotas across five separately mapped agent roles, with cross-workspace settings, per-session mapping snapshots and staged report handoffs.
-  zh: 依赖 dsh-our-free-model，按五角色分别映射已启用通道模型以利用可用免费额度，支持跨工作区共享设置、新旧会话各自保留映射和分阶段报告交接。
+  en: Assigns any model the DeepSeek Harness currently advertises to six separately mapped agent roles including a vision role for image recognition, with free selection across all registered providers, cross-workspace settings, per-session mapping snapshots and staged report handoffs; dsh-our-free-model is optional and can supply free-tier channels.
+  zh: 从 DeepSeek Harness 当前注册并广告的全部模型中，为六角色（含识图）自由选择并分别映射，不限特定插件或 provider 清单；支持跨工作区共享设置、新旧会话各自保留映射和分阶段报告交接。dsh-our-free-model 变为可选，可提供免费额度通道。

@@ -34,5 +34,8 @@ test('release verifier accepts a complete package including a workflow function 
   const directory=await fixture(t);
   const result=await verifyUnpacked(directory);
   assert.equal(result.name,'dsh-agent-model-router');
-  assert.equal(result.version,'1.0.0-rc.1');
+  const manifest=JSON.parse(await fs.readFile(path.join(directory,'package.json'),'utf8'));
+  assert.equal(result.version,manifest.version);
+  assert.match(result.buildId,/^[a-f0-9]{64}$/);
+  assert.equal(result.minimumNode,'22.13.0');
 });

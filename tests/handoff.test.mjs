@@ -29,7 +29,8 @@ test('layered handoff preserves full reports on disk and filters role context',a
   const result=await runLayeredWorkflow({request:{args:{task:'x',plan:['explore','implement','test','review'],constraints,prior:{rootPlan:{decision:'approved'},research:{status:'done',summary:'irrelevant background'}}}},exec:{signal:new AbortController().signal},run,directory});
   assert.equal(calls.length,4);
   assert.equal(result.agentsStarted,4);
-  assert.equal(result.result.handoff.explore.summary,long);
+  assert.ok(result.result.handoff.explore.summary.length<2000);
+  assert.ok(result.result.handoff.explore.source.path.endsWith('.json'));
   assert.deepEqual(calls[1].args.prior.constraints,constraints);
   assert.equal(calls[2].args.prior.explore,null,'tester does not receive unrelated explore report');
   assert.ok(calls[3].args.prior.test.commands.includes('npm test'));
@@ -52,8 +53,9 @@ test('failed stages prevent downstream execution and retain reports',async()=>{
 
 test('archive failure prevents any child start',async()=>{
  let calls=0;
- await assert.rejects(runLayeredWorkflow({directory:'unused',request:{args:{task:'x',plan:['explore']}},exec:{},writeReport:async()=>{throw Error('disk unavailable');},run:async()=>{calls++;}}),/disk unavailable/);
+ const result=await runLayeredWorkflow({directory:'unused',request:{args:{task:'x',plan:['explore']}},exec:{},writeReport:async()=>{throw Error('disk unavailable');},run:async()=>{calls++;}});
  assert.equal(calls,0);
+ assert.equal(result.result.verdict,'blocked');assert.match(JSON.stringify(result.result.errors),/disk unavailable/);
 });
 
 test('implementation without a root plan returns needs_decision without starting a worker',async()=>{
@@ -65,11 +67,35 @@ test('implementation without a root plan returns needs_decision without starting
  }finally{await rm(directory,{recursive:true,force:true});}
 });
 
+test('vision stage runs first and its report reaches explore as prior evidence',async()=>{
+ const directory=await mkdtemp(path.join(tmpdir(),'amr-handoff-'));
+ try{
+  const calls=[];
+  const run=async request=>{
+   calls.push(request);
+   const stage=request.args.plan[0];
+   const report={status:'done',summary:stage==='vision'?'red button at top-left':'explored',filesModified:[]};
+   const prior=request.args.prior;
+   return {kind:'foreground',runId:'run-'+stage,agentsStarted:1,result:{verdict:'passed',phases:{[stage]:report},handoff:{...prior,[stage]:report}}};
+  };
+  const result=await runLayeredWorkflow({request:{args:{task:'describe then explore',plan:['vision','explore'],prior:{rootPlan:{decision:'approved'}}}},exec:{signal:new AbortController().signal},run,directory});
+  assert.equal(calls.length,2);
+  assert.equal(calls[0].args.plan[0],'vision');
+  assert.equal(calls[1].args.plan[0],'explore');
+  assert.ok(calls[1].args.prior.vision,'explore receives the vision report');
+  assert.match(calls[1].args.prior.vision.summary,/red button/);
+ }finally{await rm(directory,{recursive:true,force:true});}
+});
+
 test('cancellation between stages prevents the next child from starting',async()=>{
  const directory=await mkdtemp(path.join(tmpdir(),'amr-handoff-')),controller=new AbortController();
  try{
   let calls=0;
-  await assert.rejects(runLayeredWorkflow({directory,request:{args:{task:'x',plan:['explore','research']}},exec:{signal:controller.signal},run:async()=>{calls++;controller.abort();return {kind:'foreground',runId:'r',agentsStarted:1,result:{verdict:'passed',phases:{explore:{status:'done',summary:'x'}}}};}}));
+  const result=await runLayeredWorkflow({directory,request:{args:{task:'x',plan:['explore','research']}},exec:{signal:controller.signal},run:async()=>{calls++;controller.abort();return {kind:'foreground',runId:'r',agentsStarted:1,result:{verdict:'passed',phases:{explore:{status:'done',summary:'x'}}}};}});
   assert.equal(calls,1);
+  assert.equal(result.result.verdict,'blocked');
+  assert.equal(result.result.phases.explore.status,'done');
+  assert.equal(result.result.runs[0].runId,'r');
+  assert.equal(result.result.errors[0].kind,'cancelled');
  }finally{await rm(directory,{recursive:true,force:true});}
 });
